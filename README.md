@@ -1,2 +1,2 @@
 # BioAI-Health-Report-Analyze
-BioAI Health Report Analyzer is a MATLAB-based application that extracts medical values from PDF and image reports using OCR, allows manual verification, and highlights possible health-risk patterns using predefined rules. It aims to simplify medical report understanding and promote health awareness.
+BioAI is a MATLAB-based medical report assistant that supports PDF/image uploads using ocr, patient details, manual verification, and English–Telugu translation. It aims to make medical information easier to understand, especially for Telugu speakers, while supporting healthcare awareness and accessibility. It does not replace doctors.
