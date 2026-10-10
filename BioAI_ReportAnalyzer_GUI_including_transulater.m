@@ -1,0 +1,1311 @@
+function BioAI_ReportAnalyzer_GUI
+% BIOAI HEALTH REPORT ANALYZER
+% English and Telugu Language Support
+% Educational and hackathon prototype only.
+
+clc;
+close all;
+
+currentLanguage = 'English';
+
+%% MAIN WINDOW
+fig = uifigure( ...
+    'Name','BioAI Health Report Analyzer', ...
+    'Position',[40 30 1500 900], ...
+    'Color',[0.94 0.97 0.99]);
+
+%% HEADER
+uilabel(fig,...
+    'Position',[20 845 1460 40],...
+    'Text','🧬 BioAI HEALTH REPORT ANALYZER',...
+    'FontSize',28,...
+    'FontWeight','bold',...
+    'FontColor',[0.02 0.25 0.50],...
+    'HorizontalAlignment','center');
+
+uilabel(fig,...
+    'Position',[20 815 1460 25],...
+    'Text','AI-Assisted Laboratory Report Reading & Health Risk Screening',...
+    'FontSize',14,...
+    'FontColor',[0.25 0.35 0.45],...
+    'HorizontalAlignment','center');
+
+uibutton(fig,...
+    'Position',[1300 805 175 30],...
+    'Text','🌐 English / తెలుగు',...
+    'FontSize',11,...
+    'FontWeight','bold',...
+    'ButtonPushedFcn',@toggleLanguage);
+
+%% STEP 1: UPLOAD REPORT
+uploadPanel = uipanel(fig,...
+    'Title','STEP 1 — Upload Laboratory Report',...
+    'Position',[20 650 460 145],...
+    'FontSize',15,...
+    'FontWeight','bold');
+
+uibutton(uploadPanel,...
+    'Position',[20 55 125 50],...
+    'Text','📄 PDF',...
+    'FontSize',14,...
+    'FontWeight','bold',...
+    'ButtonPushedFcn',@uploadPDF);
+
+uibutton(uploadPanel,...
+    'Position',[160 55 125 50],...
+    'Text','🖼 IMAGE',...
+    'FontSize',14,...
+    'FontWeight','bold',...
+    'ButtonPushedFcn',@uploadImage);
+
+uibutton(uploadPanel,...
+    'Position',[300 55 125 50],...
+    'Text','✏ MANUAL',...
+    'FontSize',14,...
+    'FontWeight','bold',...
+    'ButtonPushedFcn',@manualValues);
+
+fileStatus = uilabel(uploadPanel,...
+    'Position',[20 15 405 25],...
+    'Text','No report selected',...
+    'FontColor',[0.3 0.3 0.3],...
+    'HorizontalAlignment','center');
+
+%% STEP 2: LABORATORY VALUES
+labPanel = uipanel(fig,...
+    'Title','STEP 2 — Extracted Laboratory Values (Verify Before Analysis)',...
+    'Position',[20 320 460 315],...
+    'FontSize',14,...
+    'FontWeight','bold');
+
+uilabel(labPanel,...
+    'Position',[20 260 180 25],...
+    'Text','Glucose (mg/dL)');
+
+glucoseField = uieditfield(labPanel,'numeric',...
+    'Position',[220 260 100 30],'Value',0);
+
+uilabel(labPanel,...
+    'Position',[20 220 180 25],...
+    'Text','HbA1c (%)');
+
+hba1cField = uieditfield(labPanel,'numeric',...
+    'Position',[220 220 100 30],'Value',0);
+
+uilabel(labPanel,...
+    'Position',[20 180 180 25],...
+    'Text','Total Cholesterol');
+
+cholField = uieditfield(labPanel,'numeric',...
+    'Position',[220 180 100 30],'Value',0);
+
+uilabel(labPanel,...
+    'Position',[20 140 180 25],...
+    'Text','Systolic BP');
+
+bpField = uieditfield(labPanel,'numeric',...
+    'Position',[220 140 100 30],'Value',0);
+
+uilabel(labPanel,...
+    'Position',[20 100 180 25],...
+    'Text','Hemoglobin');
+
+hbField = uieditfield(labPanel,'numeric',...
+    'Position',[220 100 100 30],'Value',0);
+
+uilabel(labPanel,...
+    'Position',[20 60 180 25],...
+    'Text','Creatinine');
+
+creatinineField = uieditfield(labPanel,'numeric',...
+    'Position',[220 60 100 30],'Value',0);
+
+uibutton(labPanel,...
+    'Position',[335 150 105 80],...
+    'Text','✓ Verify Values',...
+    'FontSize',12,...
+    'FontWeight','bold',...
+    'ButtonPushedFcn',@verifyValues);
+
+%% ADDITIONAL PARAMETERS
+additionalPanel = uipanel(fig,...
+    'Title','Additional Laboratory Parameters',...
+    'Position',[500 650 470 145],...
+    'FontSize',15,...
+    'FontWeight','bold');
+
+uilabel(additionalPanel,...
+    'Position',[15 65 90 25],'Text','ALT');
+
+altField = uieditfield(additionalPanel,'numeric',...
+    'Position',[70 65 75 30],'Value',0);
+
+uilabel(additionalPanel,...
+    'Position',[155 65 90 25],'Text','AST');
+
+astField = uieditfield(additionalPanel,'numeric',...
+    'Position',[205 65 75 30],'Value',0);
+
+uilabel(additionalPanel,...
+    'Position',[290 65 70 25],'Text','TSH');
+
+tshField = uieditfield(additionalPanel,'numeric',...
+    'Position',[330 65 75 30],'Value',0);
+
+uilabel(additionalPanel,...
+    'Position',[15 20 90 25],'Text','WBC');
+
+wbcField = uieditfield(additionalPanel,'numeric',...
+    'Position',[70 20 75 30],'Value',0);
+
+uilabel(additionalPanel,...
+    'Position',[155 20 90 25],'Text','Age');
+
+ageField = uieditfield(additionalPanel,'numeric',...
+    'Position',[205 20 75 30],'Value',0);
+
+%% STEP 3: HEALTH ANALYSIS
+analyzePanel = uipanel(fig,...
+    'Title','STEP 3 — Health Analysis',...
+    'Position',[500 320 470 315],...
+    'FontSize',15,...
+    'FontWeight','bold');
+
+uilabel(analyzePanel,...
+    'Position',[20 245 420 35],...
+    'Text','After uploading and verifying the report:',...
+    'FontSize',13,...
+    'HorizontalAlignment','center');
+
+uibutton(analyzePanel,...
+    'Position',[35 170 400 65],...
+    'Text','🔬 ANALYZE HEALTH REPORT',...
+    'FontSize',19,...
+    'FontWeight','bold',...
+    'BackgroundColor',[0.02 0.40 0.70],...
+    'FontColor',[1 1 1],...
+    'ButtonPushedFcn',@analyzeReport);
+
+analysisStatus = uilabel(analyzePanel,...
+    'Position',[20 110 430 35],...
+    'Text','Waiting for report...',...
+    'FontSize',14,...
+    'HorizontalAlignment','center');
+
+uibutton(analyzePanel,...
+    'Position',[35 45 190 45],...
+    'Text','Load Demo Report',...
+    'ButtonPushedFcn',@demoReport);
+
+uibutton(analyzePanel,...
+    'Position',[245 45 190 45],...
+    'Text','Reset',...
+    'ButtonPushedFcn',@resetGUI);
+
+%% STEP 4: QUICK RESULT
+resultPanel = uipanel(fig,...
+    'Title','AI Screening Result',...
+    'Position',[990 650 480 145],...
+    'FontSize',15,...
+    'FontWeight','bold');
+
+riskLabel = uilabel(resultPanel,...
+    'Position',[20 65 440 50],...
+    'Text','WAITING',...
+    'FontSize',25,...
+    'FontWeight','bold',...
+    'HorizontalAlignment','center');
+
+scoreLabel = uilabel(resultPanel,...
+    'Position',[20 25 440 30],...
+    'Text','Screening Index: -- / 100',...
+    'FontSize',14,...
+    'HorizontalAlignment','center');
+
+%% DETECTED ISSUES
+issuePanel = uipanel(fig,...
+    'Title','Detected Health Issues / Risk Patterns',...
+    'Position',[990 320 480 315],...
+    'FontSize',15,...
+    'FontWeight','bold');
+
+issueList = uitextarea(issuePanel,...
+    'Position',[15 15 450 270],...
+    'Value',{'Upload a laboratory report to begin.'},...
+    'Editable','off',...
+    'FontSize',13);
+
+%% UPLOAD PDF
+function uploadPDF(~,~)
+
+    [file,path] = uigetfile('*.pdf',...
+        'Select Laboratory PDF');
+
+    if isequal(file,0)
+        return;
+    end
+
+    fullName = fullfile(path,file);
+    fileStatus.Text = ['Reading: ' file];
+    drawnow;
+
+    try
+        txt = "";
+
+        if exist('extractFileText','file') == 2
+            try
+                txt = string(extractFileText(fullName));
+            catch
+                txt = "";
+            end
+        end
+
+        if strlength(strtrim(txt)) < 20
+            uialert(fig,...
+                ['This appears to be a scanned/image PDF.' newline newline ...
+                 'Use the IMAGE button and upload a screenshot/image ' ...
+                 'of the report page for OCR.'],...
+                 'Scanned PDF');
+
+            fileStatus.Text = 'PDF selected — OCR image required';
+            return;
+        end
+
+        readReportText(txt);
+
+        fileStatus.Text = '✓ PDF read successfully';
+        analysisStatus.Text = ...
+            'Verify extracted values, then click ANALYZE.';
+
+        applyLanguageToFigure(fig);
+
+    catch ME
+        fileStatus.Text = 'PDF reading failed';
+        uialert(fig,ME.message,'PDF Error');
+    end
+end
+
+%% UPLOAD IMAGE
+function uploadImage(~,~)
+
+    [file,path] = uigetfile(...
+        {'*.jpg;*.jpeg;*.png;*.bmp;*.tif;*.tiff',...
+        'Laboratory Report Image'},...
+        'Select Report Image');
+
+    if isequal(file,0)
+        return;
+    end
+
+    fullName = fullfile(path,file);
+    fileStatus.Text = ['Reading: ' file];
+    drawnow;
+
+    try
+        img = imread(fullName);
+
+        if size(img,3) == 3
+            gray = rgb2gray(img);
+        else
+            gray = img;
+        end
+
+        gray = imresize(gray,2);
+        gray = adapthisteq(gray);
+
+        if exist('ocr','file') ~= 2
+            uialert(fig,...
+                'OCR is unavailable in this MATLAB installation.',...
+                'OCR Error');
+            return;
+        end
+
+        o = ocr(gray);
+        txt = string(o.Text);
+
+        if strlength(strtrim(txt)) < 10
+            uialert(fig,...
+                ['Very little text was detected.' newline newline ...
+                 'Please upload a clearer/high-resolution image.'],...
+                 'OCR Problem');
+            return;
+        end
+
+        readReportText(txt);
+
+        fileStatus.Text = '✓ Image read successfully';
+        analysisStatus.Text = ...
+            'Verify extracted values, then click ANALYZE.';
+
+        applyLanguageToFigure(fig);
+
+    catch ME
+        uialert(fig,ME.message,'Image/OCR Error');
+    end
+end
+
+%% READ REPORT TEXT
+function readReportText(txt)
+
+    txt = normalizeText(txt);
+
+    v = findValue(txt,...
+        ["fasting glucose","blood glucose","glucose"]);
+
+    if ~isnan(v)
+        glucoseField.Value = v;
+    end
+
+    v = findValue(txt,...
+        ["hba1c","hb a1c","glycated hemoglobin"]);
+
+    if ~isnan(v)
+        hba1cField.Value = v;
+    end
+
+    v = findValue(txt,...
+        ["total cholesterol","cholesterol"]);
+
+    if ~isnan(v)
+        cholField.Value = v;
+    end
+
+    bp = findBP(txt);
+
+    if ~isnan(bp)
+        bpField.Value = bp;
+    end
+
+    v = findValue(txt,["hemoglobin","haemoglobin"]);
+
+    if ~isnan(v) && v > 3 && v < 25
+        hbField.Value = v;
+    end
+
+    v = findValue(txt,["serum creatinine","creatinine"]);
+
+    if ~isnan(v) && v > 0 && v < 20
+        creatinineField.Value = v;
+    end
+
+    v = findValue(txt,["alanine aminotransferase","alt"]);
+
+    if ~isnan(v)
+        altField.Value = v;
+    end
+
+    v = findValue(txt,["aspartate aminotransferase","ast"]);
+
+    if ~isnan(v)
+        astField.Value = v;
+    end
+
+    v = findValue(txt,["thyroid stimulating hormone","tsh"]);
+
+    if ~isnan(v)
+        tshField.Value = v;
+    end
+
+    v = findValue(txt,...
+        ["white blood cell count","white blood cell","wbc"]);
+
+    if ~isnan(v)
+        if v < 100
+            v = v*1000;
+        end
+        wbcField.Value = v;
+    end
+end
+
+%% NORMALIZE OCR TEXT
+function txt = normalizeText(txt)
+
+    txt = lower(string(txt));
+    txt = replace(txt,char(13)," ");
+    txt = replace(txt,char(10)," ");
+    txt = regexprep(txt,'\s+',' ');
+
+    txt = replace(txt,"hba ic","hba1c");
+    txt = replace(txt,"hba lc","hba1c");
+end
+
+%% FIND VALUE
+function value = findValue(txt,keywords)
+
+    value = NaN;
+
+    for k = 1:numel(keywords)
+        key = regexptranslate('escape',char(lower(keywords(k))));
+
+        pattern = [key '[^0-9]{0,60}' ...
+            '([0-9]+(?:\.[0-9]+)?)'];
+
+        tokens = regexp(char(txt),pattern,'tokens');
+
+        if isempty(tokens)
+            continue;
+        end
+
+        for n = 1:numel(tokens)
+            x = str2double(tokens{n}{1});
+
+            if x > 0 && x < 100000
+                value = x;
+                return;
+            end
+        end
+    end
+end
+
+%% BLOOD PRESSURE
+function value = findBP(txt)
+
+    value = NaN;
+
+    patterns = {...
+        'blood pressure[^0-9]{0,20}([0-9]{2,3})\s*/\s*([0-9]{2,3})',...
+        '\bbp[^0-9]{0,20}([0-9]{2,3})\s*/\s*([0-9]{2,3})',...
+        '\b([0-9]{2,3})\s*/\s*([0-9]{2,3})\s*mmhg'};
+
+    for k = 1:numel(patterns)
+        t = regexp(char(txt),patterns{k},'tokens','once');
+
+        if ~isempty(t)
+            systolic = str2double(t{1});
+            diastolic = str2double(t{2});
+
+            if systolic >= 70 && systolic <= 260 && ...
+                    diastolic >= 40 && diastolic <= 160
+                value = systolic;
+                return;
+            end
+        end
+    end
+end
+
+%% VERIFY VALUES
+function verifyValues(~,~)
+
+    data = {...
+        'Glucose',glucoseField.Value,'mg/dL';...
+        'HbA1c',hba1cField.Value,'%';...
+        'Cholesterol',cholField.Value,'mg/dL';...
+        'Systolic BP',bpField.Value,'mmHg';...
+        'Hemoglobin',hbField.Value,'g/dL';...
+        'Creatinine',creatinineField.Value,'mg/dL';...
+        'ALT',altField.Value,'U/L';...
+        'AST',astField.Value,'U/L';...
+        'TSH',tshField.Value,'mIU/L';...
+        'WBC',wbcField.Value,'cells/uL'};
+
+    verifyFig = uifigure(...
+        'Name','Verify Extracted Values',...
+        'Position',[300 200 700 550]);
+
+    uilabel(verifyFig,...
+        'Position',[30 500 640 30],...
+        'Text','Verify the values before AI analysis',...
+        'FontSize',18,...
+        'FontWeight','bold',...
+        'HorizontalAlignment','center');
+
+    uitable(verifyFig,...
+        'Position',[30 120 640 350],...
+        'Data',data,...
+        'ColumnName',{'TEST','VALUE','UNIT'},...
+        'ColumnWidth',{220 150 150},...
+        'RowName',[],...
+        'FontSize',13);
+
+    uilabel(verifyFig,...
+        'Position',[30 60 640 35],...
+        'Text','If OCR made an error, correct it in the main window.',...
+        'HorizontalAlignment','center',...
+        'FontColor',[0.8 0.2 0.05]);
+
+    applyLanguageToFigure(verifyFig);
+end%% HEALTH ANALYSIS
+function analyzeReport(~,~)
+
+    glucose = glucoseField.Value;
+    hba1c = hba1cField.Value;
+    cholesterol = cholField.Value;
+    bp = bpField.Value;
+    hemoglobin = hbField.Value;
+    creatinine = creatinineField.Value;
+
+    alt = altField.Value;
+    ast = astField.Value;
+    tsh = tshField.Value;
+    wbc = wbcField.Value;
+    age = ageField.Value;
+
+    if glucose == 0 && hba1c == 0 && ...
+            cholesterol == 0 && bp == 0
+
+        uialert(fig,...
+            'Please upload a report or enter laboratory values first.',...
+            'No Data');
+        return;
+    end
+
+    %% SCREENING SCORES
+
+    diabetes = 0;
+
+    if glucose >= 126
+        diabetes = diabetes + 45;
+    elseif glucose >= 100
+        diabetes = diabetes + 20;
+    end
+
+    if hba1c >= 6.5
+        diabetes = diabetes + 45;
+    elseif hba1c >= 5.7
+        diabetes = diabetes + 20;
+    end
+
+    diabetes = min(diabetes,100);
+
+    hypertension = 0;
+
+    if bp >= 140
+        hypertension = 80;
+    elseif bp >= 130
+        hypertension = 50;
+    elseif bp >= 120
+        hypertension = 20;
+    end
+
+    cardiovascular = 0;
+
+    if cholesterol >= 240
+        cardiovascular = cardiovascular + 40;
+    elseif cholesterol >= 200
+        cardiovascular = cardiovascular + 20;
+    end
+
+    if bp >= 140
+        cardiovascular = cardiovascular + 30;
+    elseif bp >= 130
+        cardiovascular = cardiovascular + 15;
+    end
+
+    if age >= 50
+        cardiovascular = cardiovascular + 10;
+    end
+
+    cardiovascular = min(cardiovascular,100);
+
+    kidney = 0;
+
+    if creatinine > 1.3
+        kidney = 80;
+    elseif creatinine > 1.1
+        kidney = 35;
+    end
+
+    liver = 0;
+
+    if alt > 56
+        liver = liver + 50;
+    elseif alt > 40
+        liver = liver + 25;
+    end
+
+    if ast > 40
+        liver = liver + 40;
+    elseif ast > 30
+        liver = liver + 20;
+    end
+
+    liver = min(liver,100);
+
+    anemia = 0;
+
+    if hemoglobin < 12
+        anemia = 80;
+    elseif hemoglobin < 13
+        anemia = 40;
+    end
+
+    thyroid = 0;
+
+    if tsh < 0.4 || tsh > 4.0
+        thyroid = 70;
+    end
+
+    infection = 0;
+
+    if wbc > 11000 || wbc < 4000
+        infection = 70;
+    end
+
+    obesity = 0;
+
+    %% OVERALL SCREENING INDEX
+    scores = [diabetes,hypertension,cardiovascular,...
+        kidney,liver,anemia,thyroid,infection,obesity];
+
+    overall = round(mean(scores));
+
+    if overall < 30
+        category = 'LOW';
+        color = [0.05 0.60 0.20];
+    elseif overall < 60
+        category = 'MODERATE';
+        color = [0.90 0.55 0.02];
+    else
+        category = 'HIGH';
+        color = [0.80 0.05 0.05];
+    end
+
+    riskLabel.Text = [category ' RISK'];
+    riskLabel.FontColor = color;
+
+    scoreLabel.Text = sprintf(...
+        'Screening Index: %d / 100',overall);
+
+    %% IDENTIFY ISSUES
+    issues = {};
+
+    if diabetes >= 60
+        issues{end+1} = ...
+            '🔴 Diabetes-related abnormal pattern';
+    elseif diabetes >= 30
+        issues{end+1} = ...
+            '🟡 Elevated glucose / prediabetes-related pattern';
+    end
+
+    if hypertension >= 60
+        issues{end+1} = ...
+            '🔴 Elevated blood-pressure pattern';
+    elseif hypertension >= 30
+        issues{end+1} = ...
+            '🟡 Blood-pressure elevation';
+    end
+
+    if cardiovascular >= 60
+        issues{end+1} = ...
+            '🔴 Increased cardiovascular risk pattern';
+    elseif cardiovascular >= 30
+        issues{end+1} = ...
+            '🟡 Cardiovascular risk factors detected';
+    end
+
+    if kidney >= 60
+        issues{end+1} = ...
+            '🔴 Kidney-function abnormality flag';
+    elseif kidney >= 30
+        issues{end+1} = ...
+            '🟡 Creatinine requires attention';
+    end
+
+    if liver >= 60
+        issues{end+1} = ...
+            '🔴 Liver-enzyme abnormality pattern';
+    elseif liver >= 30
+        issues{end+1} = ...
+            '🟡 Mild liver-enzyme elevation';
+    end
+
+    if anemia >= 60
+        issues{end+1} = ...
+            '🔴 Low hemoglobin / anemia flag';
+    end
+
+    if thyroid >= 60
+        issues{end+1} = ...
+            '🔴 Thyroid-function abnormality flag';
+    end
+
+    if infection >= 60
+        issues{end+1} = ...
+            '🔴 WBC abnormality / infection-inflammation flag';
+    end
+
+    if isempty(issues)
+        issues = {...
+            '🟢 No major abnormal pattern detected by this prototype.'};
+    end
+
+    issueList.Value = issues;
+    analysisStatus.Text = ...
+        '✓ Health report analysis completed';
+
+    applyLanguageToFigure(fig);
+
+    %% OPEN FULL REPORT
+    openDetailedReport(...
+        glucose,hba1c,cholesterol,bp,...
+        hemoglobin,creatinine,...
+        alt,ast,tsh,wbc,...
+        diabetes,hypertension,...
+        cardiovascular,kidney,liver,...
+        anemia,thyroid,infection,...
+        overall,category,issues);
+end %% DETAILED REPORT
+function openDetailedReport(...
+    glucose,hba1c,cholesterol,bp,...
+    hemoglobin,creatinine,...
+    alt,ast,tsh,wbc,...
+    diabetes,hypertension,...
+    cardiovascular,kidney,liver,...
+    anemia,thyroid,infection,...
+    overall,category,issues)
+
+    rfig = uifigure(...
+        'Name','BioAI Detailed Health Analysis',...
+        'Position',[80 40 1400 850],...
+        'Color',[0.95 0.97 0.99]);
+
+    uilabel(rfig,...
+        'Position',[30 790 1340 40],...
+        'Text','🧬 BIOAI — DETAILED HEALTH REPORT',...
+        'FontSize',26,...
+        'FontWeight','bold',...
+        'FontColor',[0.02 0.25 0.50],...
+        'HorizontalAlignment','center');
+
+    uilabel(rfig,...
+        'Position',[40 720 400 50],...
+        'Text',[category ' OVERALL RISK'],...
+        'FontSize',28,...
+        'FontWeight','bold',...
+        'HorizontalAlignment','center');
+
+    uilabel(rfig,...
+        'Position',[480 720 400 50],...
+        'Text',sprintf('INDEX %d / 100',overall),...
+        'FontSize',23,...
+        'FontWeight','bold',...
+        'HorizontalAlignment','center');
+
+    %% SCREENING TABLE
+    panel = uipanel(rfig,...
+        'Title','Health Issue Screening',...
+        'Position',[30 370 850 330],...
+        'FontSize',15,...
+        'FontWeight','bold');
+
+    data = {...
+        'Diabetes / Prediabetes',diabetes,level(diabetes);...
+        'Hypertension',hypertension,level(hypertension);...
+        'Cardiovascular Risk',cardiovascular,level(cardiovascular);...
+        'Kidney Function Risk',kidney,level(kidney);...
+        'Liver Function Risk',liver,level(liver);...
+        'Anemia',anemia,level(anemia);...
+        'Thyroid Abnormality',thyroid,level(thyroid);...
+        'Infection / Inflammation',infection,level(infection)};
+
+    uitable(panel,...
+        'Position',[15 20 820 270],...
+        'Data',data,...
+        'ColumnName',{'HEALTH AREA','RISK INDEX','LEVEL'},...
+        'ColumnWidth',{350 150 180},...
+        'FontSize',12,...
+        'RowName',[]);
+
+    %% LABORATORY VALUES
+    labPanel2 = uipanel(rfig,...
+        'Title','Extracted Laboratory Report',...
+        'Position',[910 370 460 330],...
+        'FontSize',15,...
+        'FontWeight','bold');
+
+    labData = {...
+        'Glucose',glucose,'mg/dL';...
+        'HbA1c',hba1c,'%';...
+        'Cholesterol',cholesterol,'mg/dL';...
+        'Systolic BP',bp,'mmHg';...
+        'Hemoglobin',hemoglobin,'g/dL';...
+        'Creatinine',creatinine,'mg/dL';...
+        'ALT',alt,'U/L';...
+        'AST',ast,'U/L';...
+        'TSH',tsh,'mIU/L';...
+        'WBC',wbc,'cells/uL'};
+
+    for i = 1:size(labData,1)
+        labData{i,2} = sprintf('%.2f',labData{i,2});
+    end
+
+    uitable(labPanel2,...
+        'Position',[15 20 430 270],...
+        'Data',labData,...
+        'ColumnName',{'TEST','VALUE','UNIT'},...
+        'ColumnWidth',{170 100 120},...
+        'FontSize',11,...
+        'RowName',[]);
+
+    %% ISSUES
+    issuePanel2 = uipanel(rfig,...
+        'Title','AI Interpretation',...
+        'Position',[30 40 650 300],...
+        'FontSize',15,...
+        'FontWeight','bold');
+
+    uitextarea(issuePanel2,...
+        'Position',[15 15 620 250],...
+        'Value',issues,...
+        'Editable','off',...
+        'FontSize',13);
+
+    %% GUIDANCE
+    guidePanel = uipanel(rfig,...
+        'Title','Health Guidance & Medication Information',...
+        'Position',[700 40 670 300],...
+        'FontSize',15,...
+        'FontWeight','bold');
+
+    guidance = generateGuidance(...
+        diabetes,hypertension,...
+        cardiovascular,kidney,liver,...
+        anemia,thyroid,infection);
+
+    uitextarea(guidePanel,...
+        'Position',[15 15 640 250],...
+        'Value',guidance,...
+        'Editable','off',...
+        'FontSize',12);
+
+    applyLanguageToFigure(rfig);
+end
+
+%% RISK LEVEL
+function x = level(score)
+
+    if score < 30
+        x = 'LOW';
+    elseif score < 60
+        x = 'MODERATE';
+    else
+        x = 'HIGH';
+    end
+end
+
+%% HEALTH GUIDANCE
+function guidance = generateGuidance(...
+    diabetes,hypertension,...
+    cardiovascular,kidney,liver,...
+    anemia,thyroid,infection)
+
+    guidance = {};
+
+    guidance{end+1} = 'MEDICATION INFORMATION';
+    guidance{end+1} = '--------------------------------';
+
+    if diabetes >= 60
+        guidance{end+1} = ...
+            'Diabetes: metformin is one medicine commonly used in appropriate patients.';
+        guidance{end+1} = ...
+            'Other glucose-lowering therapies may also be used depending on the patient.';
+    end
+
+    if hypertension >= 60
+        guidance{end+1} = ...
+            'Hypertension: multiple antihypertensive medication classes are available.';
+    end
+
+    if cardiovascular >= 60
+        guidance{end+1} = ...
+            'Cardiovascular risk: cholesterol-lowering treatment may be considered clinically.';
+    end
+
+    if anemia >= 60
+        guidance{end+1} = ...
+            'Anemia: treatment depends on the underlying cause; iron is not appropriate for every patient.';
+    end
+
+    if kidney >= 60
+        guidance{end+1} = ...
+            'Kidney abnormality: further kidney-function evaluation may be appropriate.';
+    end
+
+    if liver >= 60
+        guidance{end+1} = ...
+            'Liver abnormality: additional clinical evaluation may be needed.';
+    end
+
+    if thyroid >= 60
+        guidance{end+1} = ...
+            'Thyroid abnormality: thyroid-function testing and clinical evaluation may be appropriate.';
+    end
+
+    if infection >= 60
+        guidance{end+1} = ...
+            'WBC abnormality: infection/inflammation should be evaluated in clinical context.';
+    end
+
+    guidance{end+1} = '';
+    guidance{end+1} = 'IMPORTANT';
+    guidance{end+1} = ...
+        'This system provides screening information only.';
+    guidance{end+1} = ...
+        'It does NOT diagnose disease or prescribe medicines.';
+    guidance{end+1} = ...
+        'Medication selection and dosage must be determined by a qualified clinician.';
+end
+
+%% DEMO REPORT
+function demoReport(~,~)
+
+    ageField.Value = 45;
+
+    glucoseField.Value = 145;
+    hba1cField.Value = 7.1;
+    cholField.Value = 218;
+    bpField.Value = 145;
+    hbField.Value = 13.8;
+    creatinineField.Value = 1.0;
+
+    altField.Value = 25;
+    astField.Value = 25;
+    tshField.Value = 2.5;
+    wbcField.Value = 7000;
+
+    fileStatus.Text = 'Demo laboratory report loaded';
+    analysisStatus.Text = ...
+        'Demo data loaded — click ANALYZE.';
+
+    applyLanguageToFigure(fig);
+end
+
+%% MANUAL ENTRY
+function manualValues(~,~)
+
+    fileStatus.Text = 'Manual entry mode';
+
+    uialert(fig,...
+        ['Enter the laboratory values manually.' newline newline ...
+         'Then verify and analyze the report.'],...
+        'Manual Entry');
+end
+
+%% RESET
+function resetGUI(~,~)
+
+    glucoseField.Value = 0;
+    hba1cField.Value = 0;
+    cholField.Value = 0;
+    bpField.Value = 0;
+    hbField.Value = 0;
+    creatinineField.Value = 0;
+
+    altField.Value = 0;
+    astField.Value = 0;
+    tshField.Value = 0;
+    wbcField.Value = 0;
+    ageField.Value = 0;
+
+    fileStatus.Text = 'No report selected';
+    analysisStatus.Text = 'Waiting for report...';
+
+    riskLabel.Text = 'WAITING';
+    riskLabel.FontColor = [0.2 0.2 0.2];
+
+    scoreLabel.Text = 'Screening Index: -- / 100';
+
+    issueList.Value = ...
+        {'Upload a laboratory report to begin.'};
+
+    applyLanguageToFigure(fig);
+end %% ENGLISH / TELUGU LANGUAGE SWITCH
+
+function toggleLanguage(~,~)
+
+    if strcmp(currentLanguage,'English')
+        currentLanguage = 'Telugu';
+    else
+        currentLanguage = 'English';
+    end
+
+    openFigures = findall(groot,'Type','figure');
+
+    for ii = 1:numel(openFigures)
+        applyLanguageToFigure(openFigures(ii));
+    end
+end
+
+function applyLanguageToFigure(targetFig)
+
+    objects = findall(targetFig);
+
+    for ii = 1:numel(objects)
+
+        obj = objects(ii);
+
+        if isprop(obj,'Text')
+            try
+                oldText = obj.Text;
+
+                if ischar(oldText) || ...
+                        (isstring(oldText) && isscalar(oldText))
+                    obj.Text = translateUIString(...
+                        char(oldText),currentLanguage);
+                end
+            catch
+            end
+        end
+
+        if isprop(obj,'Title')
+            try
+                oldTitle = obj.Title;
+
+                if ischar(oldTitle) || ...
+                        (isstring(oldTitle) && isscalar(oldTitle))
+                    obj.Title = translateUIString(...
+                        char(oldTitle),currentLanguage);
+                end
+            catch
+            end
+        end
+
+        if isprop(obj,'Data')
+            try
+                oldData = obj.Data;
+
+                if iscell(oldData)
+                    newData = oldData;
+
+                    for rr = 1:size(oldData,1)
+                        for cc = 1:size(oldData,2)
+                            if ischar(oldData{rr,cc}) || ...
+                               (isstring(oldData{rr,cc}) && ...
+                               isscalar(oldData{rr,cc}))
+
+                                newData{rr,cc} = translateUIString(...
+                                    char(oldData{rr,cc}),currentLanguage);
+                            end
+                        end
+                    end
+
+                    obj.Data = newData;
+                end
+            catch
+            end
+        end
+
+        if isprop(obj,'Value')
+            try
+                oldValue = obj.Value;
+
+                if iscell(oldValue)
+                    newValue = oldValue;
+
+                    for jj = 1:numel(oldValue)
+                        if ischar(oldValue{jj}) || ...
+                           (isstring(oldValue{jj}) && ...
+                           isscalar(oldValue{jj}))
+
+                            newValue{jj} = translateUIString(...
+                                char(oldValue{jj}),currentLanguage);
+                        end
+                    end
+
+                    obj.Value = newValue;
+
+                elseif isstring(oldValue)
+                    newValue = oldValue;
+
+                    for jj = 1:numel(oldValue)
+                        newValue(jj) = string(translateUIString(...
+                            char(oldValue(jj)),currentLanguage));
+                    end
+
+                    obj.Value = newValue;
+                end
+            catch
+            end
+        end
+    end
+end
+
+function out = translateUIString(in,language)
+
+    pairs = {
+        '🧬 BioAI HEALTH REPORT ANALYZER','🧬 BioAI ఆరోగ్య నివేదిక విశ్లేషణ';
+        'AI-Assisted Laboratory Report Reading & Health Risk Screening','AI సహాయంతో ల్యాబ్ నివేదిక చదవడం మరియు ఆరోగ్య ప్రమాద పరిశీలన';
+        'STEP 1 — Upload Laboratory Report','దశ 1 — ల్యాబ్ నివేదికను అప్‌లోడ్ చేయండి';
+        '🖼 IMAGE','🖼 చిత్రం';
+        '✏ MANUAL','✏ చేతితో నమోదు';
+        'No report selected','నివేదికను ఎంచుకోలేదు';
+        'STEP 2 — Extracted Laboratory Values (Verify Before Analysis)','దశ 2 — ల్యాబ్ విలువలు (విశ్లేషణకు ముందు నిర్ధారించండి)';
+        'Glucose (mg/dL)','గ్లూకోజ్ (mg/dL)';
+        'Total Cholesterol','మొత్తం కొలెస్ట్రాల్';
+        'Systolic BP','సిస్టోలిక్ రక్తపోటు';
+        'Hemoglobin','హీమోగ్లోబిన్';
+        'Creatinine','క్రియాటినిన్';
+        '✓ Verify Values','✓ విలువలను నిర్ధారించండి';
+        'Additional Laboratory Parameters','అదనపు ల్యాబ్ పరీక్షల వివరాలు';
+        'STEP 3 — Health Analysis','దశ 3 — ఆరోగ్య విశ్లేషణ';
+        'After uploading and verifying the report:','నివేదికను అప్‌లోడ్ చేసి విలువలను నిర్ధారించిన తర్వాత:';
+        '🔬 ANALYZE HEALTH REPORT','🔬 ఆరోగ్య నివేదికను విశ్లేషించండి';
+        'Waiting for report...','నివేదిక కోసం వేచి ఉంది...';
+        'Load Demo Report','డెమో నివేదికను లోడ్ చేయండి';
+        'Reset','రీసెట్';
+        'AI Screening Result','AI ప్రాథమిక పరిశీలన ఫలితం';
+        'WAITING','వేచి ఉంది';
+        'Screening Index: -- / 100','పరిశీలన సూచిక: -- / 100';
+        'Detected Health Issues / Risk Patterns','గుర్తించిన ఆరోగ్య సమస్యలు / ప్రమాద సూచనలు';
+        'Upload a laboratory report to begin.','ప్రారంభించడానికి ల్యాబ్ నివేదికను అప్‌లోడ్ చేయండి.';
+        '✓ PDF read successfully','✓ PDF విజయవంతంగా చదవబడింది';
+        '✓ Image read successfully','✓ చిత్రం విజయవంతంగా చదవబడింది';
+        'Verify extracted values, then click ANALYZE.','సేకరించిన విలువలను నిర్ధారించి, విశ్లేషించండి బటన్ నొక్కండి.';
+        'PDF selected — OCR image required','PDF ఎంచుకున్నారు — OCR కోసం చిత్రం అవసరం';
+        'PDF reading failed','PDF చదవడంలో విఫలమైంది';
+        'PDF Error','PDF లోపం';
+        'Scanned PDF','స్కాన్ చేసిన PDF';
+        'OCR is unavailable in this MATLAB installation.','ఈ MATLAB ఇన్‌స్టాలేషన్‌లో OCR అందుబాటులో లేదు.';
+        'OCR Error','OCR లోపం';
+        'Very little text was detected.','చాలా తక్కువ వచనం గుర్తించబడింది.';
+        'Please upload a clearer/high-resolution image.','దయచేసి మరింత స్పష్టమైన / అధిక నాణ్యత గల చిత్రాన్ని అప్‌లోడ్ చేయండి.';
+        'OCR Problem','OCR సమస్య';
+        'Image/OCR Error','చిత్రం / OCR లోపం';
+        'Verify Extracted Values','సేకరించిన విలువలను నిర్ధారించండి';
+        'Verify the values before AI analysis','AI విశ్లేషణకు ముందు విలువలను నిర్ధారించండి';
+        'If OCR made an error, correct it in the main window.','OCR తప్పుగా చదివితే, ప్రధాన విండోలో సరిచేయండి.';
+        'No Data','డేటా లేదు';
+        'Please upload a report or enter laboratory values first.','ముందుగా నివేదికను అప్‌లోడ్ చేయండి లేదా ల్యాబ్ విలువలను నమోదు చేయండి.';
+        'LOW','తక్కువ';
+        'MODERATE','మధ్యస్థం';
+        'HIGH','అధికం';
+        'LOW RISK','తక్కువ ప్రమాదం';
+        'MODERATE RISK','మధ్యస్థ ప్రమాదం';
+        'HIGH RISK','అధిక ప్రమాదం';
+        '🔴 Diabetes-related abnormal pattern','🔴 మధుమేహానికి సంబంధించిన అసాధారణ సూచన';
+        '🟡 Elevated glucose / prediabetes-related pattern','🟡 గ్లూకోజ్ పెరుగుదల / ప్రీడయాబెటిస్ సూచన';
+        '🔴 Elevated blood-pressure pattern','🔴 అధిక రక్తపోటు సూచన';
+        '🟡 Blood-pressure elevation','🟡 రక్తపోటు పెరిగింది';
+        '🔴 Increased cardiovascular risk pattern','🔴 గుండె సంబంధిత ప్రమాద సూచన';
+        '🟡 Cardiovascular risk factors detected','🟡 గుండె సంబంధిత ప్రమాద కారకాలు గుర్తించబడ్డాయి';
+        '🔴 Kidney-function abnormality flag','🔴 మూత్రపిండాల పనితీరులో అసాధారణ సూచన';
+        '🟡 Creatinine requires attention','🟡 క్రియాటినిన్‌పై వైద్యుల సలహా అవసరం';
+        '🔴 Liver-enzyme abnormality pattern','🔴 కాలేయ ఎంజైమ్‌లలో అసాధారణ సూచన';
+        '🟡 Mild liver-enzyme elevation','🟡 కాలేయ ఎంజైమ్‌లు స్వల్పంగా పెరిగాయి';
+        '🔴 Low hemoglobin / anemia flag','🔴 హీమోగ్లోబిన్ తక్కువగా ఉండే / రక్తహీనత సూచన';
+        '🔴 Thyroid-function abnormality flag','🔴 థైరాయిడ్ పనితీరులో అసాధారణ సూచన';
+        '🔴 WBC abnormality / infection-inflammation flag','🔴 WBC అసాధారణత / ఇన్ఫెక్షన్ లేదా వాపు సూచన';
+        '🟢 No major abnormal pattern detected by this prototype.','🟢 ఈ నమూనా ద్వారా పెద్ద అసాధారణ సూచనలు గుర్తించబడలేదు.';
+        '✓ Health report analysis completed','✓ ఆరోగ్య నివేదిక విశ్లేషణ పూర్తయింది';
+        '🧬 BIOAI — DETAILED HEALTH REPORT','🧬 BIOAI — పూర్తి ఆరోగ్య నివేదిక';
+        'Health Issue Screening','ఆరోగ్య సమస్యల పరిశీలన';
+        'Extracted Laboratory Report','సేకరించిన ల్యాబ్ నివేదిక';
+        'AI Interpretation','AI వివరణ';
+        'Health Guidance & Medication Information','ఆరోగ్య సూచనలు మరియు మందుల సమాచారం';
+        'MEDICATION INFORMATION','మందుల సమాచారం';
+        'IMPORTANT','ముఖ్యమైన విషయం';
+        'This system provides screening information only.','ఈ వ్యవస్థ ప్రాథమిక పరిశీలన సమాచారాన్ని మాత్రమే అందిస్తుంది.';
+        'It does NOT diagnose disease or prescribe medicines.','ఇది వ్యాధిని నిర్ధారించదు లేదా మందులను సూచించదు.';
+        'Medication selection and dosage must be determined by a qualified clinician.','మందులు మరియు మోతాదును అర్హత కలిగిన వైద్యులు మాత్రమే నిర్ణయించాలి.';
+        'Manual entry mode','చేతితో నమోదు చేసే విధానం';
+        'Demo laboratory report loaded','డెమో ల్యాబ్ నివేదిక లోడ్ అయింది';
+        'Demo data loaded — click ANALYZE.','డెమో డేటా లోడ్ అయింది — విశ్లేషించండి నొక్కండి.';
+        'Select Laboratory PDF','ల్యాబ్ PDF ఎంచుకోండి';
+        'Select Report Image','నివేదిక చిత్రాన్ని ఎంచుకోండి';
+        'Manual Entry','చేతితో నమోదు';
+        'Enter the laboratory values manually.','ల్యాబ్ విలువలను చేతితో నమోదు చేయండి.';
+        'Then verify and analyze the report.','తర్వాత విలువలను నిర్ధారించి నివేదికను విశ్లేషించండి.';
+        'TEST','పరీక్ష';
+        'VALUE','విలువ';
+        'UNIT','యూనిట్';
+        'HEALTH AREA','ఆరోగ్య విభాగం';
+        'RISK INDEX','ప్రమాద సూచిక';
+        'LEVEL','స్థాయి';
+        'OVERALL RISK','మొత్తం ప్రమాద స్థాయి';
+        'Diabetes / Prediabetes','మధుమేహం / ప్రీడయాబెటిస్';
+        'Hypertension','అధిక రక్తపోటు';
+        'Cardiovascular Risk','గుండె సంబంధిత ప్రమాదం';
+        'Kidney Function Risk','మూత్రపిండాల పనితీరు ప్రమాదం';
+        'Liver Function Risk','కాలేయ పనితీరు ప్రమాదం';
+        'Anemia','రక్తహీనత';
+        'Thyroid Abnormality','థైరాయిడ్ అసాధారణత';
+        'Infection / Inflammation','ఇన్ఫెక్షన్ / వాపు';
+        'Glucose','గ్లూకోజ్';
+        'Cholesterol','కొలెస్ట్రాల్';
+        'Diabetes: metformin is one medicine commonly used in appropriate patients.','మధుమేహం: కొంతమంది రోగులకు వైద్యులు మెట్ఫార్మిన్ వంటి మందులను సూచించవచ్చు.';
+        'Other glucose-lowering therapies may also be used depending on the patient.','రోగి పరిస్థితిని బట్టి ఇతర గ్లూకోజ్ తగ్గించే చికిత్సలు కూడా ఉపయోగించవచ్చు.';
+        'Hypertension: multiple antihypertensive medication classes are available.','అధిక రక్తపోటుకు వివిధ రకాల మందులు అందుబాటులో ఉన్నాయి.';
+        'Cardiovascular risk: cholesterol-lowering treatment may be considered clinically.','గుండె సంబంధిత ప్రమాదం: కొలెస్ట్రాల్ తగ్గించే చికిత్స అవసరమా అని వైద్యులు నిర్ణయిస్తారు.';
+        'Anemia: treatment depends on the underlying cause; iron is not appropriate for every patient.','రక్తహీనత: కారణాన్ని బట్టి చికిత్స మారుతుంది; ప్రతి ఒక్కరికీ ఐరన్ మందులు అవసరం ఉండవు.';
+        'Kidney abnormality: further kidney-function evaluation may be appropriate.','మూత్రపిండాల అసాధారణత: మరిన్ని పరీక్షలు అవసరం కావచ్చు.';
+        'Liver abnormality: additional clinical evaluation may be needed.','కాలేయ అసాధారణత: అదనపు వైద్య పరీక్షలు అవసరం కావచ్చు.';
+        'Thyroid abnormality: thyroid-function testing and clinical evaluation may be appropriate.','థైరాయిడ్ అసాధారణత: థైరాయిడ్ పరీక్షలు మరియు వైద్యుల పరిశీలన అవసరం కావచ్చు.';
+        'WBC abnormality: infection/inflammation should be evaluated in clinical context.','WBC అసాధారణత: ఇన్ఫెక్షన్ లేదా వాపు ఉందో లేదో వైద్యులు పరిశీలించాలి.'
+    };
+
+    out = in;
+
+    for kk = 1:size(pairs,1)
+
+        if strcmp(language,'Telugu')
+            fromText = pairs{kk,1};
+            toText = pairs{kk,2};
+        else
+            fromText = pairs{kk,2};
+            toText = pairs{kk,1};
+        end
+
+        if strcmp(in,fromText)
+            out = toText;
+            return;
+        end
+    end
+
+    % Translate screening scores that contain numbers.
+    if strcmp(language,'Telugu')
+
+        token = regexp(in,...
+            '^Screening Index: ([0-9]+) / 100$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = ['పరిశీలన సూచిక: ' token{1} ' / 100'];
+        end
+
+        token = regexp(in,...
+            '^([A-Z]+) OVERALL RISK$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = [translateUIString(token{1},'Telugu') ...
+                ' — మొత్తం ప్రమాదం'];
+        end
+
+        token = regexp(in,...
+            '^([A-Z]+) RISK$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = [translateUIString(token{1},'Telugu') ' ప్రమాదం'];
+        end
+
+    else
+
+        token = regexp(in,...
+            '^పరిశీలన సూచిక: ([0-9]+) / 100$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = ['Screening Index: ' token{1} ' / 100'];
+        end
+
+        token = regexp(in,...
+            '^(తక్కువ|మధ్యస్థం|అధికం) — మొత్తం ప్రమాదం$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = [translateUIString(token{1},'English') ...
+                ' OVERALL RISK'];
+        end
+
+        token = regexp(in,...
+            '^(తక్కువ|మధ్యస్థం|అధికం) ప్రమాదం$',...
+            'tokens','once');
+
+        if ~isempty(token)
+            out = [translateUIString(token{1},'English') ' RISK'];
+        end
+    end
+end
+
+end
